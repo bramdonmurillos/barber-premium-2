@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 antialiased;
+  }
+}
+
+/* ===================================================
+   react-phone-number-input dark theme overrides
+   =================================================== */
+.phone-input-wrapper {
+  --PhoneInputCountryFlag-height: 1rem;
+  --PhoneInputCountrySelectArrow-color: #9ca3af;
+  --PhoneInputCountrySelectArrow-opacity: 1;
+}
+
+.phone-input-wrapper .PhoneInput {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.phone-input-wrapper .PhoneInputCountry {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.625rem 0.75rem;
+  background-color: #111827;
+  border: 1px solid #4b5563;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.phone-input-wrapper .PhoneInputCountrySelect {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  z-index: 1;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.phone-input-wrapper .PhoneInputInput {
+  flex: 1;
+  width: 100%;
+  padding: 0.625rem 1rem;
+  background-color: #111827;
+  border: 1px solid #4b5563;
+  border-radius: 0.5rem;
+  color: #f9fafb;
+  font-size: 0.875rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+}
+
+.phone-input-wrapper .PhoneInputInput::placeholder {
+  color: #6b7280;
+}
+
+.phone-input-wrapper .PhoneInputInput:focus {
+  border-color: #D4AF37;
+  box-shadow: 0 0 0 2px rgb(212 175 55 / 0.25);
+}
+
+.phone-input-error .PhoneInputInput,
+.phone-input-error .PhoneInputCountry {
+  border-color: #ef4444;
+}
+
+.phone-input-disabled .PhoneInputInput,
+.phone-input-disabled .PhoneInputCountry {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Light mode overrides (Phase 8) */
+.dark\:light .phone-input-wrapper .PhoneInputInput,
+.dark\:light .phone-input-wrapper .PhoneInputCountry {
+  background-color: #ffffff;
+  border-color: #d1d5db;
+  color: #111827;
+}
+
