@@ -23,23 +23,42 @@ export function useDashboardStats() {
     try {
       const today = new Date().toISOString().split('T')[0]
       
-      const [sedesRes, citasRes, barberosRes] = await Promise.all([
-        supabase
-          .from('sedes')
-          .select('id', { count: 'exact' })
-          .eq('owner_id', user.id),
+      // First, get user's sedes
+      const { data: userSedes, error: sedesError } = await supabase
+        .from('sedes')
+        .select('id')
+        .eq('owner_id', user.id)
+      
+      if (sedesError) throw sedesError
+      
+      const sedeIds = userSedes?.map(s => s.id) || []
+      
+      // If user has no sedes, return zeros
+      if (sedeIds.length === 0) {
+        setStats({
+          totalSedes: 0,
+          citasHoy: 0,
+          barberosActivos: 0
+        })
+        return
+      }
+      
+      // Fetch stats filtered by user's sedes
+      const [citasRes, barberosRes] = await Promise.all([
         supabase
           .from('citas')
           .select('id', { count: 'exact' })
+          .in('sede_id', sedeIds)
           .gte('fecha_hora', today),
         supabase
           .from('barberos')
           .select('id', { count: 'exact' })
+          .in('sede_id', sedeIds)
           .eq('activo', true)
       ])
 
       setStats({
-        totalSedes: sedesRes.count || 0,
+        totalSedes: sedeIds.length,
         citasHoy: citasRes.count || 0,
         barberosActivos: barberosRes.count || 0
       })

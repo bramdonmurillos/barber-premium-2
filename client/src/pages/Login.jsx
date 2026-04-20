@@ -12,16 +12,10 @@ export default function Login() {
   console.log('🔐 Login page - user:', user?.id)
 
   useEffect(() => {
-    if (!user) return
-    const checkAndRedirect = async () => {
-      const [{ data: ownedSedes }, { data: adminSedes }] = await Promise.all([
-        supabase.from('sedes').select('id').eq('owner_id', user.id).limit(1),
-        supabase.from('barberia_admins').select('id').eq('user_id', user.id).limit(1),
-      ])
-      const isAdmin = (ownedSedes?.length > 0) || (adminSedes?.length > 0)
-      navigate(isAdmin ? '/dashboard' : '/mis-citas')
+    if (user) {
+      // Redirect all authenticated users to dashboard
+      navigate('/dashboard')
     }
-    checkAndRedirect()
   }, [user, navigate])
 
   async function handleGoogleLogin() {
