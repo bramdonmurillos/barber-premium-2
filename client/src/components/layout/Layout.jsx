@@ -115,11 +115,11 @@ export default function Layout({ children }) {
           {/* Logo/Brand */}
           <div className="p-6 border-b border-gray-800 dark:border-gray-800">
             <Link to="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gold rounded-lg flex items-center justify-center">
-                <span className="text-black font-bold text-xl">B</span>
+              <div className="w-10 h-10 flex items-center justify-center">
+                <img src="/barba.png" alt="Barber" className="w-full h-full object-contain" />
               </div>
               <div>
-                <h1 className="text-gold font-bold text-xl">BarberFlow</h1>
+                <h1 className="text-gold font-bold text-xl">BarberPremium</h1>
                 <p className="text-gray-400 text-xs">Premium Edition</p>
               </div>
             </Link>
