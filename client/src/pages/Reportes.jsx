@@ -13,12 +13,16 @@ export default function Reportes() {
   
   const [selectedPeriod, setSelectedPeriod] = useState('mes-actual')
   const [reportData, setReportData] = useState([])
+  const [customStartDate, setCustomStartDate] = useState('')
+  const [customEndDate, setCustomEndDate] = useState('')
+  const [citasCanceladas, setCitasCanceladas] = useState(0)
+  const [citasNoCumplidas, setCitasNoCumplidas] = useState(0)
 
   useEffect(() => {
     if (citas.length > 0) {
       calculateReports()
     }
-  }, [citas, selectedPeriod, barberos])
+  }, [citas, selectedPeriod, barberos, customStartDate, customEndDate])
 
   const getDateRange = () => {
     const now = new Date()
@@ -34,6 +38,17 @@ export default function Reportes() {
         return {
           start: startOfMonth(lastMonth),
           end: endOfMonth(lastMonth)
+        }
+      case 'personalizado':
+        if (customStartDate && customEndDate) {
+          return {
+            start: new Date(customStartDate),
+            end: new Date(customEndDate + 'T23:59:59')
+          }
+        }
+        return {
+          start: startOfMonth(now),
+          end: endOfMonth(now)
         }
       case 'todo':
         return {
@@ -61,6 +76,30 @@ export default function Reportes() {
       )
     })
 
+    // Filter cancelled appointments in date range
+    const cancelledCitas = citas.filter(cita => {
+      const citaDate = new Date(cita.fecha_hora)
+      return (
+        cita.estado === 'cancelada' &&
+        citaDate >= start &&
+        citaDate <= end
+      )
+    })
+
+    // Filter no-show appointments in date range
+    const noShowCitas = citas.filter(cita => {
+      const citaDate = new Date(cita.fecha_hora)
+      return (
+        cita.estado === 'no_asistio' &&
+        citaDate >= start &&
+        citaDate <= end
+      )
+    })
+
+    // Set global counters
+    setCitasCanceladas(cancelledCitas.length)
+    setCitasNoCumplidas(noShowCitas.length)
+
     // Group by barbero
     const barberoStats = {}
 
@@ -69,6 +108,8 @@ export default function Reportes() {
         barbero: barbero,
         totalCitas: 0,
         totalIngresos: 0,
+        citasCanceladas: 0,
+        citasNoCumplidas: 0,
         servicios: {},
         metodoPago: {
           efectivo: 0,
@@ -98,6 +139,19 @@ export default function Reportes() {
       const amount = parseFloat(cita.precio_total || 0)
       if (cita.metodo_pago && stats.metodoPago[cita.metodo_pago] !== undefined) {
         stats.metodoPago[cita.metodo_pago] += amount
+      }
+    })
+
+    // Count cancelled and no-show appointments by barbero
+    cancelledCitas.forEach(cita => {
+      if (barberoStats[cita.barbero_id]) {
+        barberoStats[cita.barbero_id].citasCanceladas++
+      }
+    })
+
+    noShowCitas.forEach(cita => {
+      if (barberoStats[cita.barbero_id]) {
+        barberoStats[cita.barbero_id].citasNoCumplidas++
       }
     })
 
@@ -150,41 +204,84 @@ export default function Reportes() {
         </div>
 
         {/* Period Selector */}
-        <div className="flex space-x-2 overflow-x-auto pb-2">
-          <button
-            onClick={() => setSelectedPeriod('mes-actual')}
-            className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
-              selectedPeriod === 'mes-actual'
-                ? 'bg-gold text-black'
-                : 'bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-700'
-            }`}
-          >
-            Mes Actual
-          </button>
-          <button
-            onClick={() => setSelectedPeriod('mes-anterior')}
-            className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
-              selectedPeriod === 'mes-anterior'
-                ? 'bg-gold text-black'
-                : 'bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-700'
-            }`}
-          >
-            Mes Anterior
-          </button>
-          <button
-            onClick={() => setSelectedPeriod('todo')}
-            className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
-              selectedPeriod === 'todo'
-                ? 'bg-gold text-black'
-                : 'bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-700'
-            }`}
-          >
-            Todo el Tiempo
-          </button>
+        <div className="space-y-4">
+          <div className="flex space-x-2 overflow-x-auto pb-2">
+            <button
+              onClick={() => setSelectedPeriod('mes-actual')}
+              className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
+                selectedPeriod === 'mes-actual'
+                  ? 'bg-gold text-black'
+                  : 'bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-700'
+              }`}
+            >
+              Mes Actual
+            </button>
+            <button
+              onClick={() => setSelectedPeriod('mes-anterior')}
+              className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
+                selectedPeriod === 'mes-anterior'
+                  ? 'bg-gold text-black'
+                  : 'bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-700'
+              }`}
+            >
+              Mes Anterior
+            </button>
+            <button
+              onClick={() => setSelectedPeriod('personalizado')}
+              className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
+                selectedPeriod === 'personalizado'
+                  ? 'bg-gold text-black'
+                  : 'bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-700'
+              }`}
+            >
+              Rango Personalizado
+            </button>
+            <button
+              onClick={() => setSelectedPeriod('todo')}
+              className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
+                selectedPeriod === 'todo'
+                  ? 'bg-gold text-black'
+                  : 'bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-700'
+              }`}
+            >
+              Todo el Tiempo
+            </button>
+          </div>
+
+          {/* Custom Date Range Selector */}
+          {selectedPeriod === 'personalizado' && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Fecha Inicio
+                  </label>
+                  <input
+                    type="date"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Fecha Fin
+                  </label>
+                  <input
+                    type="date"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                    min={customStartDate}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <div>
@@ -212,6 +309,38 @@ export default function Reportes() {
               <div className="w-12 h-12 bg-green-900/20 rounded-lg flex items-center justify-center">
                 <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">Citas Canceladas</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                  {citasCanceladas}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-red-900/20 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">No Cumplidas</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                  {citasNoCumplidas}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-orange-900/20 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
             </div>
@@ -307,15 +436,51 @@ export default function Reportes() {
                     )}
                   </div>
 
-                  {/* Payment Methods */}
+                  {/* Additional Stats */}
                   <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-gray-600 dark:text-gray-300 mb-3 flex items-center">
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                      Estadísticas Adicionales
+                    </h4>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600 dark:text-gray-300 text-sm flex items-center">
+                          <svg className="w-4 h-4 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Canceladas
+                        </span>
+                        <span className="text-gray-900 dark:text-white font-semibold">{data.citasCanceladas}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600 dark:text-gray-300 text-sm flex items-center">
+                          <svg className="w-4 h-4 mr-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          No Cumplidas
+                        </span>
+                        <span className="text-gray-900 dark:text-white font-semibold">{data.citasNoCumplidas}</span>
+                      </div>
+                      <div className="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <span className="text-gray-600 dark:text-gray-300 text-sm">Promedio por Servicio</span>
+                        <span className="text-gray-900 dark:text-white font-semibold">
+                          {formatCurrency(data.totalCitas > 0 ? data.totalIngresos / data.totalCitas : 0)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Payment Methods */}
+                  <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4 md:col-span-2">
                     <h4 className="text-sm font-semibold text-gray-600 dark:text-gray-300 mb-3 flex items-center">
                       <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                       </svg>
                       Métodos de Pago
                     </h4>
-                    <div className="space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                       {[
                         { key: 'efectivo', label: 'Efectivo', color: 'bg-green-500' },
                         { key: 'tarjeta', label: 'Tarjeta', color: 'bg-blue-500' },
