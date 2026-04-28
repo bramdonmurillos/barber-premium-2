@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 
@@ -8,15 +8,27 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
 
   console.log('🔐 Login page - user:', user?.id)
 
   useEffect(() => {
     if (user) {
-      // Redirect all authenticated users to dashboard
-      navigate('/dashboard')
+      // Get returnTo parameter from URL, default to /dashboard
+      const returnTo = searchParams.get('returnTo') || '/dashboard'
+      
+      // Security: validate that returnTo is an internal path
+      const isInternalPath = returnTo.startsWith('/') && !returnTo.startsWith('//')
+      
+      if (isInternalPath) {
+        console.log('🔐 Login - Redirecting to:', returnTo)
+        navigate(returnTo, { replace: true })
+      } else {
+        console.warn('🔐 Login - Invalid returnTo, using default')
+        navigate('/dashboard', { replace: true })
+      }
     }
-  }, [user, navigate])
+  }, [user, navigate, searchParams])
 
   async function handleGoogleLogin() {
     try {

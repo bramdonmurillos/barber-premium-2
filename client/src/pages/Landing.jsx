@@ -40,7 +40,7 @@ export default function Landing() {
           Gestión profesional para barberías multi-sede
         </p>
         <a
-          href="/login"
+          href="/login?returnTo=/dashboard"
           className="inline-block bg-gold hover:bg-gold-600 text-gray-900 font-semibold px-8 py-3 rounded-lg transition-colors"
         >
           Acceder al Dashboard

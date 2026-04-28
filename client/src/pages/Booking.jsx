@@ -348,29 +348,28 @@ export default function Booking() {
     <div className="min-h-screen bg-gray-900 py-8 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8 relative">
-          {user && (
-            <Link
-              to="/mis-citas"
-              className="absolute right-0 top-0 flex items-center gap-1.5 text-sm text-gold hover:text-gold/80 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              Mis citas
-            </Link>
-          )}
+        <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gold mb-2">{sede?.nombre}</h1>
           <p className="text-gray-400">Reserva tu cita en simples pasos</p>
+          <Link
+            to={user ? "/mis-citas" : "/login?returnTo=/mis-citas"}
+            className="inline-flex items-center gap-1.5 mt-3 text-sm text-gold hover:text-gold/80 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Mis citas
+          </Link>
         </div>
 
         {/* Progress bar */}
         <div className="mb-8">
-          <div className="flex items-center justify-between max-w-2xl mx-auto">
+          <div className="flex items-center max-w-2xl mx-auto">
             {[1, 2, 3, 4].map((s) => (
-              <div key={s} className="flex items-center">
+              <>
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
+                  key={s}
+                  className={`w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0 rounded-full flex items-center justify-center font-semibold text-sm sm:text-base ${
                     s <= step
                       ? 'bg-gold text-black'
                       : 'bg-gray-800 text-gray-500'
@@ -380,12 +379,13 @@ export default function Booking() {
                 </div>
                 {s < 4 && (
                   <div
-                    className={`w-16 h-1 mx-2 ${
+                    key={`line-${s}`}
+                    className={`flex-1 h-1 ${
                       s < step ? 'bg-gold' : 'bg-gray-800'
                     }`}
                   />
                 )}
-              </div>
+              </>
             ))}
           </div>
           <div className="flex justify-between max-w-2xl mx-auto mt-2 text-xs text-gray-400">

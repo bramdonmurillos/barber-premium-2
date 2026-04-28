@@ -9,7 +9,8 @@ const ESTADOS = [
   { value: 'pendiente', label: 'Pendiente', color: 'yellow' },
   { value: 'confirmada', label: 'Confirmada', color: 'green' },
   { value: 'completada', label: 'Completada', color: 'blue' },
-  { value: 'cancelada', label: 'Cancelada', color: 'red' }
+  { value: 'cancelada', label: 'Cancelada', color: 'red' },
+  { value: 'no_asistio', label: 'No Cumplida', color: 'orange' }
 ]
 
 export default function Citas() {
@@ -69,7 +70,8 @@ export default function Citas() {
       yellow: 'bg-yellow-900/20 text-yellow-500 border-yellow-600',
       green: 'bg-green-900/20 text-green-500 border-green-600',
       blue: 'bg-blue-900/20 text-blue-500 border-blue-600',
-      red: 'bg-red-900/20 text-red-500 border-red-600'
+      red: 'bg-red-900/20 text-red-500 border-red-600',
+      orange: 'bg-orange-900/20 text-orange-500 border-orange-600'
     }
     return (
       <span className={`px-3 py-1 rounded-full text-xs font-medium border ${colors[estadoObj?.color] || colors.yellow}`}>
